@@ -1,0 +1,35 @@
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# ML artifacts (trained models are built by scripts, not committed)
+ml/**/artifacts/
+*.joblib
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
