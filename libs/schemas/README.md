@@ -5,7 +5,22 @@ See [docs/architecture.md](../../docs/architecture.md#events) for the event form
 
 Python package: `sentio-schemas` (import name `sentio_schemas`).
 
-> **Status:** package skeleton only; the event models are not implemented yet.
+| Model | Topic | Status |
+|---|---|---|
+| `RawMessageEvent` (v1) | `conversations.raw` | Implemented |
+| `EnrichedMessageEvent` (v1) | `conversations.enriched` | Not implemented yet |
+
+Contract rules (strict types, unknown fields rejected, UTC timestamps, exact money, versioning) are explained in
+[ADR 0003](../../docs/adr/0003-event-format.md).
+
+## Usage
+
+```python
+from sentio_schemas import RawMessageEvent
+
+event = RawMessageEvent.model_validate_json(kafka_message_value)  # raises ValidationError if invalid
+payload: str = event.model_dump_json()                             # back to the wire format
+```
 
 ## Development
 

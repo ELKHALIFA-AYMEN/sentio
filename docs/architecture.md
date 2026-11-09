@@ -40,8 +40,12 @@ Each service has its own Dockerfile, tests and README. Services communicate only
 - **Kafka key = `conversation_id`**, so messages of a conversation stay ordered within a partition.
 - Every event carries a `schema_version`. All timestamps are ISO 8601 in UTC.
 - Delivery is **at least once**; consumers must be idempotent (deduplicate on `message_id`).
+- Contracts are strict: unknown fields, wrong types and naive timestamps are rejected.
+  See [ADR 0003](adr/0003-event-format.md) for the full rules and the versioning policy.
 
 ### `conversations.raw` — `RawMessageEvent` v1
+
+Model: [`libs/schemas/src/sentio_schemas/raw_message.py`](../libs/schemas/src/sentio_schemas/raw_message.py).
 
 ```json
 {
@@ -58,12 +62,21 @@ Each service has its own Dockerfile, tests and README. Services communicate only
     "customer_id": "CUST-004211",
     "segment": "prepaid | postpaid | business",
     "tenure_months": 38,
-    "monthly_revenue": 29.99
+    "monthly_revenue_eur": "29.99"
   }
 }
 ```
 
-Monetary amounts are in EUR. Customer identifiers are synthetic.
+| Field | Rule |
+|---|---|
+| `schema_version` | Always `1` for this contract. |
+| `event_id`, `conversation_id`, `message_id` | UUIDs. `message_id` is the deduplication key. |
+| `sequence` | Position of the message in its conversation, starting at 1. |
+| `sent_at` | Timezone required; normalised to UTC. |
+| `text` | Trimmed; 1 to 5,000 characters. |
+| `customer.customer_id` | Synthetic only: `CUST-` + 6 digits. |
+| `customer.tenure_months` | 0 to 1,200. |
+| `customer.monthly_revenue_eur` | EUR amount ≥ 0 with at most 2 decimals, serialised as a string to stay exact. |
 
 ### `conversations.enriched` — `EnrichedMessageEvent` v1
 

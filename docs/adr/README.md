@@ -4,6 +4,7 @@
 |---|---|---|
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | Accepted |
 | [0002](0002-monorepo-with-uv-workspace.md) | Monorepo with a uv workspace, pinned to Python 3.12 | Accepted |
+| [0003](0003-event-format.md) | Event format: JSON validated by versioned Pydantic contracts | Accepted |
 
 ## Template
 
