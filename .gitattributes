@@ -1,0 +1,10 @@
+# Normalise line endings so Windows and Linux contributors (and Docker images) see the same files.
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.png binary
+*.jpg binary
+*.joblib binary
