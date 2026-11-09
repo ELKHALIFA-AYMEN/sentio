@@ -1,0 +1,53 @@
+# Workspace root: holds shared tooling configuration only. Each package lives in its own directory.
+
+[tool.uv.workspace]
+members = [
+    "libs/schemas",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4",
+    "pytest>=9.2",
+    "ruff>=0.17",
+]
+
+# --- Ruff (lint + format) -----------------------------------------------------
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["libs/*/src", "services/*/src"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # import sorting
+    "B",    # bugbear: likely bugs
+    "UP",   # pyupgrade: modern syntax
+    "N",    # naming conventions
+    "SIM",  # simplifications
+    "PT",   # pytest style
+    "T20",  # no print(): services use structured logging
+    "RUF",  # ruff-specific rules
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# --- Mypy -------------------------------------------------------------------
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+pretty = true
+
+# --- Pytest -----------------------------------------------------------------
+
+[tool.pytest.ini_options]
+# importlib mode lets several packages each have their own tests/ folder with similar file names.
+addopts = ["--import-mode=importlib", "-ra"]
+testpaths = ["libs", "services"]

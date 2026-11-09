@@ -3,6 +3,7 @@
 | # | Title | Status |
 |---|---|---|
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | Accepted |
+| [0002](0002-monorepo-with-uv-workspace.md) | Monorepo with a uv workspace, pinned to Python 3.12 | Accepted |
 
 ## Template
 

@@ -2,6 +2,51 @@
 
 Thanks for your interest! This document describes how the project is built and what every change must respect.
 
+## Development setup
+
+### Prerequisites
+
+| Tool | Why | Install |
+|---|---|---|
+| [uv](https://docs.astral.sh/uv/getting-started/installation/) | Python versions, virtual environment, dependencies | see link |
+| GNU make | Common commands (`make lint`, `make test`, …) | see below |
+
+You do **not** need to install Python 3.12 yourself: uv selects it (or downloads it) automatically,
+even if your system has a newer Python. The version is pinned in `.python-version`.
+
+#### Installing make on Windows
+
+In PowerShell:
+
+```powershell
+winget install --id ezwinports.make --exact --source winget
+```
+
+Then **close and reopen** your terminal (and VS Code) so the updated `PATH` is picked up, and check:
+
+```powershell
+make --version
+```
+
+On macOS, `make` comes with the Xcode command line tools (`xcode-select --install`).
+On Debian/Ubuntu: `sudo apt install make`.
+
+### First run
+
+```bash
+make install   # creates .venv with Python 3.12 and installs all packages
+make check     # lint + type-check + tests
+```
+
+Run `make` alone to list all commands.
+
+### Repository layout
+
+The Python code is a [uv workspace](docs/adr/0002-monorepo-with-uv-workspace.md): the root `pyproject.toml`
+holds the shared tool configuration, and each service or library under `services/` and `libs/` is a workspace
+member with its own `pyproject.toml`, `src/` and `tests/`. A new member must be added to the `members` list in
+the root `pyproject.toml` and to `PY_PACKAGES` in the `Makefile`.
+
 ## Workflow
 
 1. **Plan before code.** For any non-trivial change, open an issue or a short design note first.

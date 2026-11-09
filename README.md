@@ -47,7 +47,15 @@ PostgreSQL 16 · Redpanda · Next.js + TypeScript + Tailwind · Docker Compose �
 
 ## Getting started
 
-The goal is a one-command demo (`make up`). Setup instructions will be added as the services land.
+The goal is a one-command demo (`make up`), which will be available once the services land.
+For now you can set up the development environment:
+
+```bash
+make install   # Python 3.12 virtual environment with all packages (requires uv)
+make check     # lint, type-check and tests
+```
+
+Prerequisites (uv, GNU make — including on Windows) are described in [CONTRIBUTING.md](CONTRIBUTING.md#development-setup).
 
 ## Contributing
 
