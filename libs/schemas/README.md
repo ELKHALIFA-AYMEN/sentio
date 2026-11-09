@@ -18,8 +18,10 @@ Contract rules (strict types, unknown fields rejected, UTC timestamps, exact mon
 ```python
 from sentio_schemas import RawMessageEvent
 
-event = RawMessageEvent.model_validate_json(kafka_message_value)  # raises ValidationError if invalid
-payload: str = event.model_dump_json()                             # back to the wire format
+event = RawMessageEvent.model_validate_json(
+    kafka_message_value
+)  # raises ValidationError if invalid
+payload: str = event.model_dump_json()  # back to the wire format
 ```
 
 ## Development
