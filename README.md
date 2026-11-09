@@ -1,5 +1,7 @@
 # Sentio
 
+[![CI](https://github.com/ELKHALIFA-AYMEN/sentio/actions/workflows/ci.yml/badge.svg)](https://github.com/ELKHALIFA-AYMEN/sentio/actions/workflows/ci.yml)
+
 **Real-time customer conversation intelligence.**
 
 Support teams handle thousands of conversations a day, but they usually discover problems — a failing

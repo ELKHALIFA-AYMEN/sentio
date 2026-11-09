@@ -9,7 +9,7 @@ PY_PACKAGES := libs/schemas
 
 help: ## Show available commands
 	@echo Available commands:
-	@echo   make install    - create .venv with Python 3.12 and install all packages
+	@echo   make install    - create .venv with Python 3.12 and install the locked dependencies
 	@echo   make lint       - ruff lint + format check + mypy --strict
 	@echo   make format     - auto-fix lint issues and format the code
 	@echo   make typecheck  - mypy --strict on every Python package
@@ -17,7 +17,7 @@ help: ## Show available commands
 	@echo   make check      - lint + test (what CI runs)
 
 install: ## Create the virtual environment and install all workspace packages
-	uv sync --all-packages
+	uv sync --all-packages --locked
 
 lint: ## Lint, check formatting and type-check
 	uv run ruff check .

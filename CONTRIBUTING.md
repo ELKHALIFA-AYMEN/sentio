@@ -62,7 +62,13 @@ the root `pyproject.toml` and to `PY_PACKAGES` in the `Makefile`.
 | Python | `ruff check`, `ruff format` | `mypy --strict` | `pytest` |
 | TypeScript | `eslint` | `tsc --noEmit` (no `any`) | `vitest` |
 
-All gates run in CI and must pass before merging.
+All gates run in CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) on every push to `main` and every
+pull request, and must pass before merging. CI calls the same `make` targets as a developer machine
+(`make install`, `make lint`, `make test`), so `make check` passing locally means CI should pass too.
+
+`make install` uses `uv sync --locked`: it fails if `uv.lock` is out of date with the `pyproject.toml` files.
+After changing dependencies, run `uv lock` (or use `uv add` / `uv remove`, which update the lockfile) and commit
+`uv.lock` together with the change.
 
 ## Conventions
 
