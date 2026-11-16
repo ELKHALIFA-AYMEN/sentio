@@ -8,7 +8,7 @@ Python package: `sentio-schemas` (import name `sentio_schemas`).
 | Model | Topic | Status |
 |---|---|---|
 | `RawMessageEvent` (v1) | `conversations.raw` | Implemented |
-| `EnrichedMessageEvent` (v1) | `conversations.enriched` | Not implemented yet |
+| `EnrichedMessageEvent` (v1) | `conversations.enriched` | Implemented |
 
 Contract rules (strict types, unknown fields rejected, UTC timestamps, exact money, versioning) are explained in
 [ADR 0003](../../docs/adr/0003-event-format.md).

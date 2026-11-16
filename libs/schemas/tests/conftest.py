@@ -23,3 +23,34 @@ def raw_payload() -> dict[str, Any]:
             "monthly_revenue_eur": "29.99",
         },
     }
+
+
+@pytest.fixture
+def enriched_payload(raw_payload: dict[str, Any]) -> dict[str, Any]:
+    """A valid conversations.enriched event for a customer message, as JSON on the wire."""
+    return {
+        **raw_payload,
+        "enrichment": {
+            "language": "en",
+            "language_confidence": 0.98,
+            "sentiment": {"label": "negative", "score": -0.82},
+            "topic": {"label": "network", "confidence": 0.91},
+            "churn_risk": 0.74,
+            "model_versions": {
+                "language": "lingua-1.0.0",
+                "sentiment": "tfidf-lr-0.1.0",
+                "topic": "tfidf-lr-0.1.0",
+                "churn": "rules-0.1.0",
+            },
+            "enriched_at": "2026-11-09T10:15:42.350000Z",
+        },
+    }
+
+
+@pytest.fixture
+def agent_enriched_payload(enriched_payload: dict[str, Any]) -> dict[str, Any]:
+    """A valid enriched event for an agent message: only the language is predicted."""
+    enriched_payload["author"] = "agent"
+    enriched_payload["text"] = "I'm sorry to hear that, let me check the network in your area."
+    enriched_payload["enrichment"].update(sentiment=None, topic=None, churn_risk=None)
+    return enriched_payload

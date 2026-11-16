@@ -4,13 +4,14 @@ One event is one message of a support conversation, exactly as the simulator pro
 before any enrichment. See docs/adr/0003-event-format.md for the design rules.
 """
 
-from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import Field, StringConstraints
+
+from sentio_schemas._common import Contract, UtcDatetime
 
 MAX_TEXT_LENGTH = 5_000
 """Upper bound on a message's text, to protect consumers from abnormally large events."""
@@ -42,13 +43,7 @@ class CustomerSegment(StrEnum):
     BUSINESS = "business"
 
 
-class _Contract(BaseModel):
-    """Base for event models: immutable, strict about unknown fields and about types."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
-
-
-class Customer(_Contract):
+class Customer(Contract):
     """Snapshot of the customer's attributes at the time of the message."""
 
     customer_id: Annotated[str, StringConstraints(pattern=CUSTOMER_ID_PATTERN)]
@@ -57,7 +52,7 @@ class Customer(_Contract):
     monthly_revenue_eur: Annotated[Decimal, Field(ge=0, max_digits=8, decimal_places=2)]
 
 
-class RawMessageEvent(_Contract):
+class RawMessageEvent(Contract):
     """One message of a conversation, as published on ``conversations.raw``."""
 
     schema_version: Literal[1] = 1
@@ -65,15 +60,10 @@ class RawMessageEvent(_Contract):
     conversation_id: UUID
     message_id: UUID
     sequence: Annotated[int, Field(ge=1)]
-    sent_at: AwareDatetime
+    sent_at: UtcDatetime
     channel: Channel
     author: Author
     text: Annotated[
         str, StringConstraints(strip_whitespace=True, min_length=1, max_length=MAX_TEXT_LENGTH)
     ]
     customer: Customer
-
-    @field_validator("sent_at")
-    @classmethod
-    def _normalise_to_utc(cls, value: datetime) -> datetime:
-        return value.astimezone(UTC)

@@ -80,23 +80,40 @@ Model: [`libs/schemas/src/sentio_schemas/raw_message.py`](../libs/schemas/src/se
 
 ### `conversations.enriched` — `EnrichedMessageEvent` v1
 
-All fields of the raw event, plus:
+Model: [`libs/schemas/src/sentio_schemas/enriched_message.py`](../libs/schemas/src/sentio_schemas/enriched_message.py).
+
+All fields of the raw event (same rules), plus:
 
 ```json
 {
   "enrichment": {
-    "language": "fr",
+    "language": "fr | en | und",
     "language_confidence": 0.98,
-    "sentiment": { "label": "negative", "score": -0.82 },
-    "topic": { "label": "network", "confidence": 0.91 },
+    "sentiment": { "label": "negative | neutral | positive", "score": -0.82 },
+    "topic": { "label": "billing | network | roaming | plan | porting | other", "confidence": 0.91 },
     "churn_risk": 0.74,
-    "model_versions": { "sentiment": "...", "topic": "...", "churn": "..." },
-    "enriched_at": "2026-11-09T10:15:42.350Z"
+    "model_versions": {
+      "language": "lingua-1.0.0",
+      "sentiment": "tfidf-lr-0.1.0",
+      "topic": "tfidf-lr-0.1.0",
+      "churn": "rules-0.1.0"
+    },
+    "enriched_at": "2026-11-09T10:15:42.350000Z"
   }
 }
 ```
 
-`sentiment`, `topic` and `churn_risk` are `null` for agent messages.
+| Field | Rule |
+|---|---|
+| `language` | `fr`, `en`, or `und` (ISO 639 "undetermined") when detection fails. |
+| `language_confidence`, `topic.confidence`, `churn_risk` | Between 0 and 1. |
+| `sentiment.score` | Between -1 and +1. A `negative` label requires a score ≤ 0, a `positive` label a score ≥ 0. |
+| `sentiment`, `topic`, `churn_risk` | Always present. **Set for customer messages, `null` for agent messages.** |
+| `model_versions` | Version of each model of the pipeline (non-empty), so every prediction can be traced. |
+| `enriched_at` | Timezone required; normalised to UTC. |
+
+An enriched event is rejected by the raw contract and vice versa, so the two topics cannot be mixed up.
+The enrichment service builds events with `EnrichedMessageEvent.from_raw(raw, enrichment)`.
 
 ## Database (PostgreSQL 16)
 
