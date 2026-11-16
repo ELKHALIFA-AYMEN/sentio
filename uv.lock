@@ -5,6 +5,7 @@ requires-python = "==3.12.*"
 [manifest]
 members = [
     "sentio-schemas",
+    "sentio-simulator",
 ]
 
 [manifest.dependency-groups]
@@ -271,6 +272,17 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [{ name = "pydantic", specifier = ">=2.14.3,<3" }]
+
+[[package]]
+name = "sentio-simulator"
+version = "0.1.0"
+source = { editable = "services/simulator" }
+dependencies = [
+    { name = "sentio-schemas" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "sentio-schemas", editable = "libs/schemas" }]
 
 [[package]]
 name = "typing-extensions"

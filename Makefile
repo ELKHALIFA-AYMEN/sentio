@@ -2,7 +2,7 @@
 # a POSIX shell (Linux, macOS, CI) and cmd.exe (GNU make on Windows).
 
 # Python packages type-checked one by one (each has its own tests/ folder).
-PY_PACKAGES := libs/schemas
+PY_PACKAGES := libs/schemas services/simulator
 
 .DEFAULT_GOAL := help
 .PHONY: help install lint format typecheck test check up down ps logs reset

@@ -3,6 +3,7 @@
 [tool.uv.workspace]
 members = [
     "libs/schemas",
+    "services/simulator",
 ]
 
 [dependency-groups]
@@ -33,6 +34,10 @@ select = [
     "T20",  # no print(): services use structured logging
     "RUF",  # ruff-specific rules
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Hand-written sentences: keeping each one on a single line keeps them readable and easy to review.
+"services/simulator/src/sentio_simulator/templates.py" = ["E501"]
 
 [tool.ruff.format]
 quote-style = "double"

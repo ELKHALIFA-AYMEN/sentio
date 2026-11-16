@@ -10,8 +10,8 @@ Sentio processes customer conversations **as a stream**: every message is enrich
 (language, sentiment, topic, churn risk), signals are aggregated in real time, and alerts appear on a live
 dashboard within seconds.
 
-The demo domain is a **fictional European telecom operator** (mobile plans, billing, roaming, network issues,
-number porting). All conversations are **synthetic** — no real customer data is ever used.
+The demo domain is **Quillnet Mobile**, an invented European telecom operator (mobile plans, billing, roaming,
+network issues, number porting). All conversations are **synthetic** — no real customer data is ever used.
 
 > **Status:** early development. The repository skeleton is in place; services are being built step by step.
 
