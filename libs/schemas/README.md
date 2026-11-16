@@ -30,6 +30,6 @@ From the repository root:
 
 ```bash
 make install            # installs this package in the shared .venv
-uv run pytest libs/schemas
-uv run mypy libs/schemas
+uv run python -m pytest libs/schemas
+uv run python -m mypy libs/schemas
 ```
