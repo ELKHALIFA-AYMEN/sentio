@@ -28,6 +28,12 @@ Then **close and reopen** your terminal (and VS Code) so the updated `PATH` is p
 make --version
 ```
 
+> **Why the Makefile uses `python -m mypy` and `python -m pytest`:** on Windows, `uv` installs small unsigned
+> launchers (`.venv\Scripts\mypy.exe`, `pytest.exe`). Security features such as Smart App Control can block
+> them ("An Application Control policy has blocked this file"). Running the tools as modules of the signed
+> `python.exe` avoids the problem and checks exactly the same thing. `ruff.exe` is a signed binary and is not
+> affected. When running these tools by hand on Windows, use the same form, e.g. `uv run python -m pytest`.
+
 On macOS, `make` comes with the Xcode command line tools (`xcode-select --install`).
 On Debian/Ubuntu: `sudo apt install make`.
 

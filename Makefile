@@ -29,9 +29,9 @@ format: ## Auto-fix and format
 	uv run ruff format .
 
 typecheck: ## mypy --strict, one package at a time
-	$(foreach pkg,$(PY_PACKAGES),uv run mypy $(pkg) &&) echo mypy: all packages OK
+	$(foreach pkg,$(PY_PACKAGES),uv run python -m mypy $(pkg) &&) echo mypy: all packages OK
 
 test: ## Run all tests
-	uv run pytest
+	uv run python -m pytest
 
 check: lint test ## Everything CI runs
