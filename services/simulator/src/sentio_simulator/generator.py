@@ -65,10 +65,12 @@ CHANNEL_WEIGHTS: Mapping[Channel, float] = MappingProxyType(
 )
 
 # Delay between two messages, in seconds (min, max), per channel.
+# E-mail replies are compressed to minutes (instead of hours) so that a live demo shows complete
+# conversations and reaches its target rate quickly.
 REPLY_DELAY_SECONDS: Mapping[Channel, tuple[int, int]] = MappingProxyType(
     {
         Channel.CHAT: (15, 90),
-        Channel.EMAIL: (30 * 60, 6 * 3600),
+        Channel.EMAIL: (2 * 60, 20 * 60),
         Channel.CALL_TRANSCRIPT: (5, 40),
     }
 )

@@ -50,7 +50,8 @@ PostgreSQL 16 · Redpanda · Next.js + TypeScript + Tailwind · Docker Compose �
 ## Getting started
 
 The goal is a one-command demo (`make up`). Today it starts the infrastructure (Redpanda, its web console and
-PostgreSQL); the Sentio services will be added as they land.
+PostgreSQL) and the simulator, which publishes about 5 synthetic messages per second; the other Sentio
+services will be added as they land.
 
 ```bash
 make up        # start the local stack (requires Docker) and wait until it is healthy

@@ -41,9 +41,9 @@ jobs:
         run: make test
 
   compose:
-    name: Docker Compose (config validation)
+    name: Docker Compose (config validation, image build)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -52,3 +52,7 @@ jobs:
       # unknown keys and broken references. Works without a .env file because every value has a default.
       - name: Validate compose.yaml
         run: docker compose config --quiet
+
+      # Builds the images of the Sentio services (nothing is started or pushed).
+      - name: Build service images
+        run: docker compose build

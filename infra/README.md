@@ -11,6 +11,9 @@ root (so that `docker compose up` works from there); this folder holds the confi
 | `redpanda-init` | same image | One-shot job: creates the topics, then exits. | — |
 | `redpanda-console` | `redpandadata/console` v3.14.0 | Web UI to browse topics and messages. | <http://localhost:8080> |
 | `postgres` | `postgres` 16.16-alpine | Database. | `localhost:5432` |
+| `simulator` | built from [`services/simulator`](../services/simulator) | Publishes synthetic conversations to `conversations.raw` (5 messages/s by default). | — |
+
+`make up` builds the images of the Sentio services if needed; `docker compose up -d --build` forces a rebuild.
 
 All ports are bound to `127.0.0.1`: they are reachable from this machine only. Containers talk to each other
 by service name (`redpanda:9092`, `postgres:5432`). Ports, credentials and topic settings can be overridden in a

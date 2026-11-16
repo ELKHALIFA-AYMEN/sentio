@@ -1,0 +1,17 @@
+# Files Docker must not send to the build: images are built from the repository root.
+.git
+.github
+.venv
+**/__pycache__
+**/*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+**/node_modules
+**/.next
+.env
+.env.*
+docs
+**/tests
+*.md
+!**/README.md

@@ -51,8 +51,14 @@ Run `make` alone to list all commands.
 
 The Python code is a [uv workspace](docs/adr/0002-monorepo-with-uv-workspace.md): the root `pyproject.toml`
 holds the shared tool configuration, and each service or library under `services/` and `libs/` is a workspace
-member with its own `pyproject.toml`, `src/` and `tests/`. A new member must be added to the `members` list in
-the root `pyproject.toml` and to `PY_PACKAGES` in the `Makefile`.
+member with its own `pyproject.toml`, `src/` and `tests/`. A new member must be added to:
+
+- the `members` list in the root `pyproject.toml`;
+- `PY_PACKAGES` in the `Makefile`;
+- the dependency step of **every service Dockerfile** (`COPY <member>/pyproject.toml <member>/`): `uv sync --locked`
+  reads all workspace members to check `uv.lock`, even the ones a service does not use.
+
+Service images are built from the repository root (`docker build -f services/<name>/Dockerfile .`).
 
 ## Workflow
 
@@ -72,7 +78,8 @@ the root `pyproject.toml` and to `PY_PACKAGES` in the `Makefile`.
 All gates run in CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) on every push to `main` and every
 pull request, and must pass before merging. CI calls the same `make` targets as a developer machine
 (`make install`, `make lint`, `make test`), so `make check` passing locally means CI should pass too.
-A second CI job validates `compose.yaml` with `docker compose config --quiet` (no container is started).
+A second CI job validates `compose.yaml` with `docker compose config --quiet` and builds the service images
+with `docker compose build` (no container is started).
 
 `make install` uses `uv sync --locked`: it fails if `uv.lock` is out of date with the `pyproject.toml` files.
 After changing dependencies, run `uv lock` (or use `uv add` / `uv remove`, which update the lockfile) and commit

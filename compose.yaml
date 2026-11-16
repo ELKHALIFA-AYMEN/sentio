@@ -60,6 +60,27 @@ services:
     ports:
       - "127.0.0.1:${REDPANDA_CONSOLE_PORT:-8080}:8080"
 
+  # --- Sentio services ------------------------------------------------------------
+  simulator:
+    build:
+      context: . # the repository root, so the image can include libs/schemas
+      dockerfile: services/simulator/Dockerfile
+    image: sentio/simulator:dev
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      redpanda-init:
+        condition: service_completed_successfully # the topics exist
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      SIMULATOR_TOPIC: conversations.raw
+      SIMULATOR_MESSAGES_PER_SECOND: ${SIMULATOR_MESSAGES_PER_SECOND:-5}
+      SIMULATOR_FRENCH_SHARE: ${SIMULATOR_FRENCH_SHARE:-0.5}
+      SIMULATOR_SEED: ${SIMULATOR_SEED:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    restart: unless-stopped # restarted automatically if it crashes (e.g. broker unreachable)
+    stop_grace_period: 10s # time allowed for a clean stop after SIGTERM
+
   # --- Database -----------------------------------------------------------------
   postgres:
     image: postgres:16.16-alpine
