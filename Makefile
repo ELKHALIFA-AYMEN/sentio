@@ -5,7 +5,7 @@
 PY_PACKAGES := libs/schemas
 
 .DEFAULT_GOAL := help
-.PHONY: help install lint format typecheck test check
+.PHONY: help install lint format typecheck test check up down ps logs reset
 
 help: ## Show available commands
 	@echo Available commands:
@@ -15,6 +15,11 @@ help: ## Show available commands
 	@echo   make typecheck  - mypy --strict on every Python package
 	@echo   make test       - run all tests
 	@echo   make check      - lint + test (what CI runs)
+	@echo   make up         - start the local stack and wait until it is healthy
+	@echo   make ps         - show the state of each container
+	@echo   make logs       - follow the logs of all containers (Ctrl+C to stop)
+	@echo   make down       - stop the stack, keep the data
+	@echo   make reset      - stop the stack and DELETE its data (topics, database)
 
 install: ## Create the virtual environment and install all workspace packages
 	uv sync --all-packages --locked
@@ -35,3 +40,18 @@ test: ## Run all tests
 	uv run python -m pytest
 
 check: lint test ## Everything CI runs
+
+up: ## Start the local stack (compose.yaml) and wait for the healthchecks
+	docker compose up -d --wait
+
+ps: ## Show container states
+	docker compose ps -a
+
+logs: ## Follow container logs
+	docker compose logs -f
+
+down: ## Stop the stack, keep the volumes
+	docker compose down
+
+reset: ## Stop the stack and delete its volumes
+	docker compose down -v

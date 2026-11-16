@@ -10,6 +10,7 @@ Thanks for your interest! This document describes how the project is built and w
 |---|---|---|
 | [uv](https://docs.astral.sh/uv/getting-started/installation/) | Python versions, virtual environment, dependencies | see link |
 | GNU make | Common commands (`make lint`, `make test`, …) | see below |
+| [Docker](https://docs.docker.com/get-started/get-docker/) with Compose v2 | Local stack (`make up`): Redpanda, PostgreSQL | Docker Desktop on Windows / macOS |
 
 You do **not** need to install Python 3.12 yourself: uv selects it (or downloads it) automatically,
 even if your system has a newer Python. The version is pinned in `.python-version`.

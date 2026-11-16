@@ -49,15 +49,20 @@ PostgreSQL 16 · Redpanda · Next.js + TypeScript + Tailwind · Docker Compose �
 
 ## Getting started
 
-The goal is a one-command demo (`make up`), which will be available once the services land.
-For now you can set up the development environment:
+The goal is a one-command demo (`make up`). Today it starts the infrastructure (Redpanda, its web console and
+PostgreSQL); the Sentio services will be added as they land.
 
 ```bash
+make up        # start the local stack (requires Docker) and wait until it is healthy
 make install   # Python 3.12 virtual environment with all packages (requires uv)
 make check     # lint, type-check and tests
 ```
 
-Prerequisites (uv, GNU make — including on Windows) are described in [CONTRIBUTING.md](CONTRIBUTING.md#development-setup).
+Then open the Redpanda console at <http://localhost:8080> to browse the topics.
+See [infra/README.md](infra/README.md) for the services, ports and data volumes.
+
+Prerequisites (Docker, uv, GNU make — including on Windows) are described in
+[CONTRIBUTING.md](CONTRIBUTING.md#development-setup).
 
 ## Contributing
 
