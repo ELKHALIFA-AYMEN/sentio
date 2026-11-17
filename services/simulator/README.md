@@ -12,6 +12,7 @@ No real data is ever used: the texts come from hand-written templates, customer 
 |---|---|---|
 | [`generator.py`](src/sentio_simulator/generator.py) | Builds one conversation from a seed. | none |
 | [`stream.py`](src/sentio_simulator/stream.py) | Interleaves conversations into a time-ordered stream at the target rate. | none |
+| [`scenarios.py`](src/sentio_simulator/scenarios.py) | Incident scenarios (network outage, billing error) and their schedule. | none |
 | [`runner.py`](src/sentio_simulator/runner.py) | Waits until each message is due, publishes it, stops when asked. | waits |
 | [`publisher.py`](src/sentio_simulator/publisher.py) | Sends events to Kafka (the only module that imports `aiokafka`). | network |
 | [`config.py`](src/sentio_simulator/config.py), [`logging_json.py`](src/sentio_simulator/logging_json.py) | Settings from environment variables, JSON logs. | — |
@@ -49,6 +50,33 @@ process) at the rate needed for the target number of messages per second, and in
 by time. The simulation starts one hour (the longest possible conversation) before `now` and skips earlier
 messages, so the stream is at full speed immediately; a few conversations are joined midway.
 
+## Incident scenarios
+
+An incident temporarily changes the traffic, the way a real problem would. It gives the rest of the
+pipeline something to detect: a burst of negative messages on one topic.
+
+| Scenario | Topic | During the incident |
+|---|---|---|
+| `network_outage` | network | 60 % of new conversations are about the network (20 % normally), 90 % of them negative (60 % normally), all about the same city (Lyon), and 1.5 × more messages. |
+| `billing_error` | billing | 60 % of new conversations are about billing (25 % normally), 85 % of them negative (50 % normally), all quoting the same wrong fee (€12.90), and 1.3 × more messages. |
+
+How it works: an `Incident` is a scenario with a start and an end time. For each conversation it starts,
+the stream checks whether an incident is active at that moment; if so, it uses the scenario's settings
+(`Scenario.apply`) instead of the normal ones. Conversations started before the incident finish normally, and
+traffic goes back to normal when it ends. Only one incident can be active at a time.
+
+**Triggering an incident.** The simulator reads the scenario at start-up and runs it once,
+`SIMULATOR_SCENARIO_DELAY_SECONDS` after starting, for `SIMULATOR_SCENARIO_DURATION_SECONDS`.
+With the stack running, restart the simulator with a scenario:
+
+```bash
+make incident SCENARIO=network_outage   # or billing_error
+make incident                            # back to normal traffic
+```
+
+The logs show `incident scheduled` with its start and end times. Without make, set `SIMULATOR_SCENARIO` in
+your shell or in `.env`, then run `docker compose up -d simulator`.
+
 ## Publishing
 
 - **Key = `conversation_id`**: Kafka sends all messages with the same key to the same partition, so the
@@ -70,6 +98,9 @@ messages, so the stream is at full speed immediately; a few conversations are jo
 | `SIMULATOR_MESSAGES_PER_SECOND` | `5` | Average rate, between 0 and 1000. |
 | `SIMULATOR_FRENCH_SHARE` | `0.5` | Share of conversations in French. |
 | `SIMULATOR_SEED` | *(empty)* | Integer seed for a reproducible stream; empty = new seed at each start (logged). |
+| `SIMULATOR_SCENARIO` | *(empty)* | `network_outage` or `billing_error`; empty = normal traffic only. |
+| `SIMULATOR_SCENARIO_DELAY_SECONDS` | `60` | Seconds between the start of the simulator and the start of the incident. |
+| `SIMULATOR_SCENARIO_DURATION_SECONDS` | `600` | How long the incident lasts. |
 | `LOG_LEVEL` | `INFO` | `DEBUG` also logs every published message. |
 
 Logs are JSON, one object per line. Every 10 seconds the service logs how many messages it published.

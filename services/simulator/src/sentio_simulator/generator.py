@@ -44,8 +44,11 @@ DEFAULT_TOPIC_WEIGHTS: Mapping[TopicLabel, float] = MappingProxyType(
     }
 )
 
-# How customers feel, per topic: (negative, neutral, positive).
-MOOD_WEIGHTS: Mapping[TopicLabel, tuple[float, float, float]] = MappingProxyType(
+MoodWeights = tuple[float, float, float]
+"""Odds of each customer mood: (negative, neutral, positive)."""
+
+# How customers feel, per topic, on a normal day.
+MOOD_WEIGHTS: Mapping[TopicLabel, MoodWeights] = MappingProxyType(
     {
         TopicLabel.BILLING: (0.50, 0.35, 0.15),
         TopicLabel.NETWORK: (0.60, 0.30, 0.10),
@@ -81,10 +84,18 @@ CLOSING_PROBABILITY = 0.80
 
 @dataclass(frozen=True, slots=True)
 class GeneratorConfig:
-    """What the generated traffic looks like. Defaults describe a normal day."""
+    """What the generated traffic looks like. Defaults describe a normal day.
+
+    Incident scenarios (see ``scenarios.py``) change some of these values for a while.
+    """
 
     french_share: float = 0.5
     topic_weights: Mapping[TopicLabel, float] = field(default_factory=lambda: DEFAULT_TOPIC_WEIGHTS)
+    mood_weights: Mapping[TopicLabel, MoodWeights] = field(default_factory=lambda: MOOD_WEIGHTS)
+    city: str | None = None
+    """When set, every message that mentions a city names this one (e.g. the town of an outage)."""
+    extra_charge_eur: Decimal | None = None
+    """When set, every message that mentions an unexpected charge mentions this amount."""
 
     def __post_init__(self) -> None:
         if not 0.0 <= self.french_share <= 1.0:
@@ -93,6 +104,16 @@ class GeneratorConfig:
             raise ValueError("topic_weights must be non-empty and non-negative")
         if sum(self.topic_weights.values()) <= 0:
             raise ValueError("at least one topic weight must be positive")
+        missing = set(self.topic_weights) - set(self.mood_weights)
+        if missing:
+            raise ValueError(f"mood_weights has no odds for {sorted(missing)}")
+        for topic, odds in self.mood_weights.items():
+            if len(odds) != len(MOODS) or any(w < 0 for w in odds) or sum(odds) <= 0:
+                raise ValueError(f"mood_weights for {topic} must be 3 non-negative odds")
+        if self.city is not None and not self.city.strip():
+            raise ValueError("city must not be empty")
+        if self.extra_charge_eur is not None and self.extra_charge_eur <= 0:
+            raise ValueError("extra_charge_eur must be positive")
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,7 +145,7 @@ def generate_conversation(
 
     language = Language.FR if rng.random() < config.french_share else Language.EN
     topic = _weighted_choice(rng, config.topic_weights)
-    mood = rng.choices(MOODS, weights=MOOD_WEIGHTS[topic])[0]
+    mood = rng.choices(MOODS, weights=config.mood_weights[topic])[0]
     channel = _weighted_choice(rng, CHANNEL_WEIGHTS)
     segment = _weighted_choice(rng, SEGMENT_WEIGHTS)
     plan = rng.choice(PLANS[segment])
@@ -134,7 +155,7 @@ def generate_conversation(
         tenure_months=rng.randint(0, 120),
         monthly_revenue_eur=plan.monthly_price_eur,
     )
-    slots = _slot_values(rng, language, plan)
+    slots = _slot_values(rng, language, plan, config)
 
     turns: list[tuple[Author, str]] = [
         (Author.CUSTOMER, rng.choice(templates.OPENERS[topic][language][mood])),
@@ -175,15 +196,20 @@ def format_eur(amount: Decimal, language: Language) -> str:
     return f"{text.replace('.', ',')} €" if language is Language.FR else f"€{text}"
 
 
-def _slot_values(rng: random.Random, language: Language, plan: Plan) -> dict[str, str]:
+def _slot_values(
+    rng: random.Random, language: Language, plan: Plan, config: GeneratorConfig
+) -> dict[str, str]:
     countries = ROAMING_COUNTRIES_FR if language is Language.FR else ROAMING_COUNTRIES_EN
+    # Values are always drawn, even when the configuration overrides them, so that an override
+    # changes only that value and not the rest of the conversation.
     extra_charge = Decimal(rng.randint(500, 6_000)) / 100
+    city = rng.choice(CITIES)
     return {
         "operator": OPERATOR_NAME,
         "plan": plan.name,
         "price": format_eur(plan.monthly_price_eur, language),
-        "amount": format_eur(extra_charge, language),
-        "city": rng.choice(CITIES),
+        "amount": format_eur(config.extra_charge_eur or extra_charge, language),
+        "city": config.city or city,
         "country": rng.choice(countries),
         "days": str(rng.randint(2, 7)),
     }

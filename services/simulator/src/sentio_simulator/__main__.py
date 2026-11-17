@@ -11,12 +11,14 @@ import os
 import random
 import signal
 import sys
+from datetime import timedelta
 
 from sentio_simulator.config import Settings
 from sentio_simulator.generator import GeneratorConfig
 from sentio_simulator.logging_json import configure_logging
 from sentio_simulator.publisher import KafkaPublisher
 from sentio_simulator.runner import run, utc_now
+from sentio_simulator.scenarios import Incident
 from sentio_simulator.stream import live_message_stream
 
 logger = logging.getLogger("sentio_simulator")
@@ -42,11 +44,30 @@ async def serve(settings: Settings) -> None:
             "seed": seed,
         },
     )
+    now = utc_now()
+    incidents: list[Incident] = []
+    if settings.scenario is not None:
+        incident = Incident.starting_after(
+            settings.scenario,
+            now,
+            delay=timedelta(seconds=settings.scenario_delay_seconds),
+            duration=timedelta(seconds=settings.scenario_duration_seconds),
+        )
+        incidents.append(incident)
+        logger.info(
+            "incident scheduled",
+            extra={
+                "scenario": incident.scenario.name.value,
+                "starts_at": incident.starts_at.isoformat(),
+                "ends_at": incident.ends_at.isoformat(),
+            },
+        )
     events = live_message_stream(
         seed=seed,
-        now=utc_now(),
+        now=now,
         messages_per_second=settings.messages_per_second,
         config=GeneratorConfig(french_share=settings.french_share),
+        incidents=incidents,
     )
     async with KafkaPublisher(settings.kafka_bootstrap_servers, settings.topic) as publisher:
         published = await run(events, publisher, stop)

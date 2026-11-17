@@ -5,7 +5,7 @@
 PY_PACKAGES := libs/schemas services/simulator
 
 .DEFAULT_GOAL := help
-.PHONY: help install lint format typecheck test check up down ps logs reset
+.PHONY: help install lint format typecheck test check up down ps logs reset incident
 
 help: ## Show available commands
 	@echo Available commands:
@@ -20,6 +20,8 @@ help: ## Show available commands
 	@echo   make logs       - follow the logs of all containers (Ctrl+C to stop)
 	@echo   make down       - stop the stack, keep the data
 	@echo   make reset      - stop the stack and DELETE its data (topics, database)
+	@echo   make incident SCENARIO=network_outage - restart the simulator with an incident
+	@echo                   (network_outage or billing_error; without SCENARIO: back to normal)
 
 install: ## Create the virtual environment and install all workspace packages
 	uv sync --all-packages --locked
@@ -55,3 +57,9 @@ down: ## Stop the stack, keep the volumes
 
 reset: ## Stop the stack and delete its volumes
 	docker compose down -v
+
+# The variable is exported to docker compose for this target only, which works the same way in a
+# POSIX shell and in cmd.exe. It takes precedence over a value in .env.
+incident: export SIMULATOR_SCENARIO = $(SCENARIO)
+incident: ## Restart the simulator with an incident scenario (SCENARIO=network_outage|billing_error)
+	docker compose up -d --wait simulator

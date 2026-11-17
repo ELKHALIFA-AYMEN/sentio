@@ -77,6 +77,10 @@ services:
       SIMULATOR_MESSAGES_PER_SECOND: ${SIMULATOR_MESSAGES_PER_SECOND:-5}
       SIMULATOR_FRENCH_SHARE: ${SIMULATOR_FRENCH_SHARE:-0.5}
       SIMULATOR_SEED: ${SIMULATOR_SEED:-}
+      # Incident scenario (network_outage, billing_error), empty = normal traffic. See `make incident`.
+      SIMULATOR_SCENARIO: ${SIMULATOR_SCENARIO:-}
+      SIMULATOR_SCENARIO_DELAY_SECONDS: ${SIMULATOR_SCENARIO_DELAY_SECONDS:-60}
+      SIMULATOR_SCENARIO_DURATION_SECONDS: ${SIMULATOR_SCENARIO_DURATION_SECONDS:-600}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     restart: unless-stopped # restarted automatically if it crashes (e.g. broker unreachable)
     stop_grace_period: 10s # time allowed for a clean stop after SIGTERM

@@ -25,7 +25,7 @@ Each service has its own Dockerfile, tests and README. Services communicate only
 
 | Service | Input | Responsibility | Output |
 |---|---|---|---|
-| **simulator** | — | Generates synthetic FR/EN conversations for Quillnet Mobile, an invented European telecom operator, from hand-written templates (reproducible with a seed), including incident scenarios (e.g. a network outage causing a burst of negative messages). Default rate: 5 messages/second, configurable. | `conversations.raw` |
+| **simulator** | — | Generates synthetic FR/EN conversations for Quillnet Mobile, an invented European telecom operator, from hand-written templates (reproducible with a seed), including incident scenarios (a network outage or a billing error causing a burst of negative messages on one topic, triggered with `SIMULATOR_SCENARIO`). Default rate: 5 messages/second, configurable. | `conversations.raw` |
 | **enrichment** | `conversations.raw` | Stateless: detects the language of every message; adds sentiment, topic and churn-risk score to customer messages. | `conversations.enriched` |
 | **api-worker** | `conversations.enriched` | Persists messages idempotently, updates per-minute aggregates, evaluates alert rules. | PostgreSQL rows |
 | **api-server** | PostgreSQL, `conversations.enriched` | REST endpoints (conversations, metrics, alerts) and a WebSocket for live updates. | HTTP / WebSocket |

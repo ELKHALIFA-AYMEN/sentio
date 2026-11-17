@@ -1,6 +1,7 @@
 import pytest
 
 from sentio_simulator.config import Settings
+from sentio_simulator.scenarios import ScenarioName
 
 
 def test_defaults_work_without_any_variable() -> None:
@@ -61,5 +62,41 @@ def test_empty_values_fall_back_to_defaults() -> None:
 def test_invalid_value_is_rejected_with_a_clear_message(
     variable: str, value: str, message: str
 ) -> None:
+    with pytest.raises(ValueError, match=message):
+        Settings.from_env({variable: value})
+
+
+def test_no_scenario_by_default() -> None:
+    settings = Settings.from_env({})
+
+    assert settings.scenario is None
+    assert settings.scenario_delay_seconds == 60.0
+    assert settings.scenario_duration_seconds == 600.0
+
+
+def test_scenario_variables_are_read() -> None:
+    settings = Settings.from_env(
+        {
+            "SIMULATOR_SCENARIO": " Network_Outage ",
+            "SIMULATOR_SCENARIO_DELAY_SECONDS": "0",
+            "SIMULATOR_SCENARIO_DURATION_SECONDS": "300",
+        }
+    )
+
+    assert settings.scenario is ScenarioName.NETWORK_OUTAGE
+    assert settings.scenario_delay_seconds == 0.0
+    assert settings.scenario_duration_seconds == 300.0
+
+
+@pytest.mark.parametrize(
+    ("variable", "value", "message"),
+    [
+        ("SIMULATOR_SCENARIO", "earthquake", "must be one of: network_outage, billing_error"),
+        ("SIMULATOR_SCENARIO_DELAY_SECONDS", "-1", "must be >= 0"),
+        ("SIMULATOR_SCENARIO_DURATION_SECONDS", "0", "must be > 0"),
+        ("SIMULATOR_SCENARIO_DURATION_SECONDS", "long", "must be a number"),
+    ],
+)
+def test_invalid_scenario_setting_is_rejected(variable: str, value: str, message: str) -> None:
     with pytest.raises(ValueError, match=message):
         Settings.from_env({variable: value})

@@ -57,6 +57,7 @@ services will be added as they land.
 make up        # start the local stack (requires Docker) and wait until it is healthy
 make install   # Python 3.12 virtual environment with all packages (requires uv)
 make check     # lint, type-check and tests
+make incident SCENARIO=network_outage   # simulate an incident (or billing_error)
 ```
 
 Then open the Redpanda console at <http://localhost:8080> to browse the topics.
