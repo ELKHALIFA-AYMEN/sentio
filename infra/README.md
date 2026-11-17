@@ -12,6 +12,7 @@ root (so that `docker compose up` works from there); this folder holds the confi
 | `redpanda-console` | `redpandadata/console` v3.14.0 | Web UI to browse topics and messages. | <http://localhost:8080> |
 | `postgres` | `postgres` 16.16-alpine | Database. | `localhost:5432` |
 | `simulator` | built from [`services/simulator`](../services/simulator) | Publishes synthetic conversations to `conversations.raw` (5 messages/s by default). | — |
+| `enrichment` | built from [`services/enrichment`](../services/enrichment) | Reads `conversations.raw` (consumer group `sentio-enrichment`), publishes `conversations.enriched`, sends invalid messages to `conversations.dlq`. | — |
 
 `make up` builds the images of the Sentio services if needed; `docker compose up -d --build` forces a rebuild.
 
@@ -28,7 +29,7 @@ are left unchanged.
 |---|---|
 | `conversations.raw` | simulator → enrichment |
 | `conversations.enriched` | enrichment → api-worker, api-server |
-| `conversations.dlq` | events that could not be parsed or processed |
+| `conversations.dlq` | enrichment → (inspection, replay): messages that could not be parsed or processed |
 
 Defaults: 3 partitions, replication factor 1 (single node), 24-hour retention.
 **Automatic topic creation is disabled**: producing to a misspelled topic fails instead of silently creating it.

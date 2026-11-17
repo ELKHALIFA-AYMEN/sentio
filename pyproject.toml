@@ -3,6 +3,7 @@
 [tool.uv.workspace]
 members = [
     "libs/schemas",
+    "services/enrichment",
     "services/simulator",
 ]
 

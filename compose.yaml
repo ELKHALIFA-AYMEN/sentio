@@ -85,6 +85,27 @@ services:
     restart: unless-stopped # restarted automatically if it crashes (e.g. broker unreachable)
     stop_grace_period: 10s # time allowed for a clean stop after SIGTERM
 
+  # Reads conversations.raw, publishes conversations.enriched (invalid messages: conversations.dlq).
+  enrichment:
+    build:
+      context: .
+      dockerfile: services/enrichment/Dockerfile
+    image: sentio/enrichment:dev
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      redpanda-init:
+        condition: service_completed_successfully # the topics exist
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      ENRICHMENT_INPUT_TOPIC: conversations.raw
+      ENRICHMENT_OUTPUT_TOPIC: conversations.enriched
+      ENRICHMENT_DLQ_TOPIC: conversations.dlq
+      ENRICHMENT_GROUP_ID: sentio-enrichment
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    restart: unless-stopped # restarted if it crashes; it resumes from the last committed offset
+    stop_grace_period: 10s # time allowed to finish the current batch after SIGTERM
+
   # --- Database -----------------------------------------------------------------
   postgres:
     image: postgres:16.16-alpine

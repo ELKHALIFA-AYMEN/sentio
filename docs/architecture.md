@@ -26,7 +26,7 @@ Each service has its own Dockerfile, tests and README. Services communicate only
 | Service | Input | Responsibility | Output |
 |---|---|---|---|
 | **simulator** | — | Generates synthetic FR/EN conversations for Quillnet Mobile, an invented European telecom operator, from hand-written templates (reproducible with a seed), including incident scenarios (a network outage or a billing error causing a burst of negative messages on one topic, triggered with `SIMULATOR_SCENARIO`). Default rate: 5 messages/second, configurable. | `conversations.raw` |
-| **enrichment** | `conversations.raw` | Stateless: detects the language of every message; adds sentiment, topic and churn-risk score to customer messages. | `conversations.enriched` |
+| **enrichment** | `conversations.raw` | Stateless: detects the language of every message; adds sentiment, topic and churn-risk score to customer messages. Messages it cannot process go to the dead-letter topic. Currently uses a placeholder enricher (fixed neutral predictions). | `conversations.enriched`, `conversations.dlq` |
 | **api-worker** | `conversations.enriched` | Persists messages idempotently, updates per-minute aggregates, evaluates alert rules. | PostgreSQL rows |
 | **api-server** | PostgreSQL, `conversations.enriched` | REST endpoints (conversations, metrics, alerts) and a WebSocket for live updates. | HTTP / WebSocket |
 | **dashboard** | api-server | Live feed, KPIs, topic trends, alerts (UI in English). | Web UI |
@@ -40,6 +40,7 @@ Each service has its own Dockerfile, tests and README. Services communicate only
 - **Kafka key = `conversation_id`**, so messages of a conversation stay ordered within a partition.
 - Every event carries a `schema_version`. All timestamps are ISO 8601 in UTC.
 - Delivery is **at least once**; consumers must be idempotent (deduplicate on `message_id`).
+  See [Delivery and dead letters](#delivery-and-dead-letters).
 - Contracts are strict: unknown fields, wrong types and naive timestamps are rejected.
   See [ADR 0003](adr/0003-event-format.md) for the full rules and the versioning policy.
 
@@ -115,6 +116,26 @@ All fields of the raw event (same rules), plus:
 An enriched event is rejected by the raw contract and vice versa, so the two topics cannot be mixed up.
 The enrichment service builds events with `EnrichedMessageEvent.from_raw(raw, enrichment)`.
 
+## Delivery and dead letters
+
+Decided in [ADR 0004](adr/0004-kafka-client-and-delivery-guarantees.md).
+
+- Services use **aiokafka**. Producers use `acks=all` and idempotence.
+- Consumers belong to a consumer group (e.g. `sentio-enrichment`) and **commit offsets by hand, after** their
+  outputs have been acknowledged by the broker: a crash causes duplicates, never losses.
+- A message that cannot be processed because of its own content goes to **`conversations.dlq`**, with its original
+  key and bytes and these headers:
+
+| Header | Content |
+|---|---|
+| `dlq.reason` | `invalid_event` (does not match the input contract) or `enrichment_failed` (the enricher failed or its predictions break the output contract). |
+| `dlq.error` | Short description of the error (at most 1,000 characters). |
+| `dlq.service` | Service that rejected the message (e.g. `enrichment`). |
+| `dlq.source_topic`, `dlq.source_partition`, `dlq.source_offset` | Where the message was read. |
+| `dlq.failed_at` | When it was rejected (ISO 8601, UTC). |
+
+- Broker failures are not dead letters: the service exits without committing and is restarted.
+
 ## Database (PostgreSQL 16)
 
 | Table | Purpose | Keys |
@@ -131,6 +152,11 @@ Thresholds are configurable through environment variables.
 
 1. **`negative_spike`** — on a topic, over the last 10 minutes, at least 20 messages and more than 40 % negative.
    Deduplicated per topic for 30 minutes.
+   > **To revisit when the alert rules are built:** a fixed 40 % threshold does not work with the simulated
+   > traffic, where the usual share of negative messages is already above it on some topics (about 60 % on
+   > network, 55 % on porting, 50 % on billing), so the alert would fire all the time. Planned approach: compare
+   > the recent negative share of a topic with its **baseline** (its usual share over a longer period) and alert
+   > when it rises well above it.
 2. **`high_churn_risk`** — a customer message with `churn_risk ≥ 0.8` from a `postpaid` or `business` customer.
    Deduplicated per customer for 24 hours.
 

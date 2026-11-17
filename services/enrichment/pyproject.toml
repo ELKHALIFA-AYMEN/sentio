@@ -1,0 +1,19 @@
+[project]
+name = "sentio-enrichment"
+version = "0.1.0"
+description = "Enriches Sentio conversation messages with language, sentiment, topic and churn risk."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Aymen Elkhalifa" }]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "aiokafka>=0.15,<0.16",
+    "sentio-schemas",
+]
+
+[tool.uv.sources]
+sentio-schemas = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"

@@ -17,8 +17,11 @@ WORKDIR /app
 
 # Only the files describing the dependencies first: as long as they do not change,
 # Docker reuses this layer and the next build skips the download.
+# uv checks uv.lock against every workspace member, so all their pyproject.toml files are needed
+# (only this service's code is copied below).
 COPY pyproject.toml uv.lock ./
 COPY libs/schemas/pyproject.toml libs/schemas/
+COPY services/enrichment/pyproject.toml services/enrichment/
 COPY services/simulator/pyproject.toml services/simulator/
 RUN uv sync --locked --no-dev --package sentio-simulator --no-install-workspace
 
