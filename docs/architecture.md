@@ -26,7 +26,7 @@ Each service has its own Dockerfile, tests and README. Services communicate only
 | Service | Input | Responsibility | Output |
 |---|---|---|---|
 | **simulator** | — | Generates synthetic FR/EN conversations for Quillnet Mobile, an invented European telecom operator, from hand-written templates (reproducible with a seed), including incident scenarios (a network outage or a billing error causing a burst of negative messages on one topic, triggered with `SIMULATOR_SCENARIO`). Default rate: 5 messages/second, configurable. | `conversations.raw` |
-| **enrichment** | `conversations.raw` | Stateless: detects the language of every message; adds sentiment, topic and churn-risk score to customer messages. Messages it cannot process go to the dead-letter topic. Currently uses a placeholder enricher (fixed neutral predictions). | `conversations.enriched`, `conversations.dlq` |
+| **enrichment** | `conversations.raw` | Stateless: detects the language of every message; adds sentiment, topic and churn-risk score to customer messages. Messages it cannot process go to the dead-letter topic. Language detection is in place; sentiment, topic and churn risk are still placeholders (fixed neutral values). | `conversations.enriched`, `conversations.dlq` |
 | **api-worker** | `conversations.enriched` | Persists messages idempotently, updates per-minute aggregates, evaluates alert rules. | PostgreSQL rows |
 | **api-server** | PostgreSQL, `conversations.enriched` | REST endpoints (conversations, metrics, alerts) and a WebSocket for live updates. | HTTP / WebSocket |
 | **dashboard** | api-server | Live feed, KPIs, topic trends, alerts (UI in English). | Web UI |
@@ -94,7 +94,7 @@ All fields of the raw event (same rules), plus:
     "topic": { "label": "billing | network | roaming | plan | porting | other", "confidence": 0.91 },
     "churn_risk": 0.74,
     "model_versions": {
-      "language": "lingua-1.0.0",
+      "language": "py3langid-0.4.0",
       "sentiment": "tfidf-lr-0.1.0",
       "topic": "tfidf-lr-0.1.0",
       "churn": "rules-0.1.0"
@@ -164,7 +164,8 @@ Alerts can be acknowledged through the API.
 
 ## Machine learning (v1)
 
-- **Language:** off-the-shelf language detector.
+- **Language:** off-the-shelf detector (py3langid) restricted to French and English; `und` when a text has no
+  letters or the detector is less than 70 % sure. See the [model card](../ml/language/README.md).
 - **Sentiment and topic:** scikit-learn baselines (TF-IDF + logistic regression). Transformer models are planned for v2.
 - **Churn risk:** transparent rule-based score (no real churn labels are available).
 - All enrichers implement a common interface so a model can be replaced without touching the pipeline.

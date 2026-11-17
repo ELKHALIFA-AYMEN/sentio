@@ -3,9 +3,9 @@ import logging
 from collections.abc import Mapping, Sequence
 
 import pytest
-from enrichment_samples import NOW, raw_record, record
+from enrichment_samples import NOW, make_enricher, raw_record, record
 
-from sentio_enrichment import InputRecord, OutputMessage, PlaceholderEnricher, Routing
+from sentio_enrichment import InputRecord, OutputMessage, Routing
 from sentio_enrichment.worker import Partition, Stats, next_offsets, run
 
 ROUTING = Routing(output_topic="conversations.enriched", dlq_topic="conversations.dlq")
@@ -47,7 +47,7 @@ class FakeBroker:
 
 
 def run_worker(broker: FakeBroker, stop: asyncio.Event) -> Stats:
-    return asyncio.run(run(broker, broker, PlaceholderEnricher(), ROUTING, stop, now=lambda: NOW))
+    return asyncio.run(run(broker, broker, make_enricher(), ROUTING, stop, now=lambda: NOW))
 
 
 def test_every_message_is_published_in_order_then_committed() -> None:

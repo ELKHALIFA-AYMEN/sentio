@@ -1,6 +1,7 @@
 """Enrichment service: reads raw messages, adds predictions, publishes enriched messages."""
 
-from sentio_enrichment.enricher import Enricher, PlaceholderEnricher
+from sentio_enrichment.enricher import Enricher, MessageEnricher
+from sentio_enrichment.language import LangidDetector, LanguageDetector, LanguageGuess
 from sentio_enrichment.processing import (
     DeadLetterReason,
     InputRecord,
@@ -13,8 +14,11 @@ __all__ = [
     "DeadLetterReason",
     "Enricher",
     "InputRecord",
+    "LangidDetector",
+    "LanguageDetector",
+    "LanguageGuess",
+    "MessageEnricher",
     "OutputMessage",
-    "PlaceholderEnricher",
     "Routing",
     "process",
 ]

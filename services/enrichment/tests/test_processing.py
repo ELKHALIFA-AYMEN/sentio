@@ -2,9 +2,9 @@ import json
 from datetime import datetime
 
 import pytest
-from enrichment_samples import CONVERSATION_ID, NOW, raw_event, raw_record, record
+from enrichment_samples import CONVERSATION_ID, NOW, make_enricher, raw_event, raw_record, record
 
-from sentio_enrichment import DeadLetterReason, OutputMessage, PlaceholderEnricher, Routing, process
+from sentio_enrichment import DeadLetterReason, OutputMessage, Routing, process
 from sentio_enrichment.processing import MAX_ERROR_LENGTH
 from sentio_schemas import Author, EnrichedMessageEvent, Enrichment, RawMessageEvent
 
@@ -12,7 +12,7 @@ ROUTING = Routing(output_topic="conversations.enriched", dlq_topic="conversation
 
 
 def run_process(value: bytes | None) -> OutputMessage:
-    return process(record(value, offset=42, partition=2), PlaceholderEnricher(), ROUTING, NOW)
+    return process(record(value, offset=42, partition=2), make_enricher(), ROUTING, NOW)
 
 
 def headers(message: OutputMessage) -> dict[str, str]:
@@ -26,7 +26,7 @@ def headers(message: OutputMessage) -> dict[str, str]:
 def test_valid_message_is_enriched_and_published_on_the_output_topic(author: Author) -> None:
     raw = raw_event(author)
 
-    output = process(raw_record(author), PlaceholderEnricher(), ROUTING, NOW)
+    output = process(raw_record(author), make_enricher(), ROUTING, NOW)
 
     assert output.topic == "conversations.enriched"
     assert output.headers == ()
@@ -37,13 +37,13 @@ def test_valid_message_is_enriched_and_published_on_the_output_topic(author: Aut
 
 
 def test_key_is_the_conversation_id() -> None:
-    output = process(raw_record(), PlaceholderEnricher(), ROUTING, NOW)
+    output = process(raw_record(), make_enricher(), ROUTING, NOW)
 
     assert output.key == str(CONVERSATION_ID).encode()
 
 
 def test_accents_survive_the_round_trip() -> None:
-    output = process(raw_record(), PlaceholderEnricher(), ROUTING, NOW)
+    output = process(raw_record(), make_enricher(), ROUTING, NOW)
 
     assert "à Lyon" in EnrichedMessageEvent.model_validate_json(output.value).text
 
@@ -83,7 +83,7 @@ def test_raw_event_breaking_a_rule_goes_to_the_dlq() -> None:
 
 
 def test_enriched_event_on_the_raw_topic_goes_to_the_dlq() -> None:
-    already_enriched = process(raw_record(), PlaceholderEnricher(), ROUTING, NOW).value
+    already_enriched = process(raw_record(), make_enricher(), ROUTING, NOW).value
 
     output = run_process(already_enriched)
 
@@ -101,7 +101,7 @@ class AgentPredictingEnricher:
 
     def enrich(self, event: RawMessageEvent, now: datetime) -> Enrichment:
         customer_view = raw_event(Author.CUSTOMER)
-        return PlaceholderEnricher().enrich(customer_view, now)
+        return make_enricher().enrich(customer_view, now)
 
 
 def test_enricher_error_sends_the_message_to_the_dlq() -> None:
@@ -125,7 +125,7 @@ def test_predictions_refused_by_the_contract_send_the_message_to_the_dlq() -> No
 def test_dlq_message_keeps_the_original_key_and_bytes() -> None:
     original = b"\xff\xfe broken utf-8"
 
-    output = process(record(original, key=b"k-1"), PlaceholderEnricher(), ROUTING, NOW)
+    output = process(record(original, key=b"k-1"), make_enricher(), ROUTING, NOW)
 
     assert output.key == b"k-1"
     assert output.value == original

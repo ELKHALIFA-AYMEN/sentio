@@ -1,12 +1,16 @@
-"""What an enricher is, and a placeholder used until the real models are plugged in."""
+"""What an enricher is, and the enricher used by the service.
+
+The language is detected by a real model. Sentiment, topic and churn risk are still placeholders
+(fixed neutral values); they are replaced one by one in the next steps.
+"""
 
 from datetime import datetime
 from typing import Protocol
 
+from sentio_enrichment.language import LanguageDetector
 from sentio_schemas import (
     Author,
     Enrichment,
-    Language,
     ModelVersions,
     RawMessageEvent,
     Sentiment,
@@ -14,6 +18,9 @@ from sentio_schemas import (
     Topic,
     TopicLabel,
 )
+
+PLACEHOLDER_VERSION = "placeholder-0.1.0"
+"""Version written for predictions that do not come from a model yet."""
 
 
 class Enricher(Protocol):
@@ -26,29 +33,28 @@ class Enricher(Protocol):
     def enrich(self, event: RawMessageEvent, now: datetime) -> Enrichment: ...
 
 
-class PlaceholderEnricher:
-    """Returns the same neutral, obviously fake predictions for every message.
+class MessageEnricher:
+    """Detects the language of every message; other predictions are placeholders for now."""
 
-    It lets the whole pipeline run end to end before any model exists. Its version, written in
-    ``model_versions``, makes placeholder predictions easy to recognise downstream.
-    """
-
-    VERSION = "placeholder-0.1.0"
+    def __init__(self, language_detector: LanguageDetector) -> None:
+        self._language_detector = language_detector
 
     def enrich(self, event: RawMessageEvent, now: datetime) -> Enrichment:
+        language = self._language_detector.detect(event.text)
         is_customer = event.author is Author.CUSTOMER
         return Enrichment(
-            language=Language.UNDETERMINED,
-            language_confidence=0.0,
-            # Predictions are made for customer messages only (see the enriched event contract).
+            # The language is detected for every message, agent messages included.
+            language=language.language,
+            language_confidence=language.confidence,
+            # Other predictions are made for customer messages only (see the enriched contract).
             sentiment=Sentiment(label=SentimentLabel.NEUTRAL, score=0.0) if is_customer else None,
             topic=Topic(label=TopicLabel.OTHER, confidence=0.0) if is_customer else None,
             churn_risk=0.0 if is_customer else None,
             model_versions=ModelVersions(
-                language=self.VERSION,
-                sentiment=self.VERSION,
-                topic=self.VERSION,
-                churn=self.VERSION,
+                language=self._language_detector.version,
+                sentiment=PLACEHOLDER_VERSION,
+                topic=PLACEHOLDER_VERSION,
+                churn=PLACEHOLDER_VERSION,
             ),
             enriched_at=now,
         )

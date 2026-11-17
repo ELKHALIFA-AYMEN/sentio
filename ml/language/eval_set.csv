@@ -1,0 +1,88 @@
+category,expected,text
+sentence,fr,"Bonjour, depuis la panne d'hier je n'ai plus internet sur mon mobile."
+sentence,fr,Pourquoi ai-je été facturé pour des appels que je n'ai jamais passés ?
+sentence,fr,Je déménage le mois prochain et je voudrais garder ma ligne.
+sentence,fr,"Le débit est catastrophique le soir, on ne peut même pas regarder une vidéo."
+sentence,fr,J'ai reçu un SMS me demandant de payer une facture impayée. Est-ce une arnaque ?
+sentence,fr,Pouvez-vous m'envoyer un duplicata de ma facture de septembre ?
+sentence,fr,"Mon fils a dépassé son forfait, peut-on bloquer le hors forfait ?"
+sentence,fr,"Je suis client depuis dix ans et on me traite comme un inconnu."
+sentence,fr,Comment est-ce que je transfère mes contacts sur la nouvelle carte ?
+sentence,fr,"Votre application plante dès que j'ouvre la rubrique consommation."
+sentence,fr,Je n'arrive pas à joindre le service client par téléphone.
+sentence,fr,"Est-il possible d'avoir deux lignes sur le même compte ?"
+sentence,fr,On m'a promis un geste commercial qui n'apparaît toujours pas.
+sentence,fr,"L'antenne près de chez moi est en travaux, pour combien de temps ?"
+sentence,fr,Je veux changer la date de prélèvement de mon abonnement.
+sentence,fr,"Mon téléphone a été volé, il faut suspendre la ligne tout de suite."
+sentence,fr,"Le technicien n'est jamais venu, j'ai posé une demi-journée pour rien."
+sentence,fr,Quels sont les tarifs pour appeler vers le Maroc depuis la France ?
+sentence,fr,"La 5G est annoncée dans ma ville, mais je ne la capte nulle part."
+sentence,fr,Je souhaite recevoir mes factures par courrier et non par e-mail.
+sentence,en,"Hi, since yesterday's outage I have no mobile internet at all."
+sentence,en,Why was I billed for calls I never made?
+sentence,en,I'm moving next month and would like to keep my line.
+sentence,en,"Speed is terrible in the evening, we can't even watch a video."
+sentence,en,I got a text asking me to pay an overdue bill. Is it a scam?
+sentence,en,Could you send me a copy of my September invoice?
+sentence,en,"My son went over his allowance, can we block extra charges?"
+sentence,en,I've been a customer for ten years and I'm treated like a stranger.
+sentence,en,How do I move my contacts to the new card?
+sentence,en,Your app crashes as soon as I open the usage section.
+sentence,en,I can't reach customer service by phone.
+sentence,en,Is it possible to have two lines on the same account?
+sentence,en,I was promised a goodwill credit that still hasn't shown up.
+sentence,en,"The mast near my home is being worked on, how long will it take?"
+sentence,en,I want to change the payment date of my subscription.
+sentence,en,"My phone was stolen, the line must be suspended right now."
+sentence,en,"The engineer never showed up, I took half a day off for nothing."
+sentence,en,What are the rates for calling Morocco from France?
+sentence,en,"5G is advertised in my town, but I can't get it anywhere."
+sentence,en,I'd like to receive my bills by post instead of e-mail.
+short,fr,Merci
+short,fr,Merci beaucoup !
+short,fr,Bonjour
+short,fr,Bonsoir
+short,fr,D'accord
+short,fr,Toujours rien.
+short,fr,C'est réglé
+short,fr,Pas de réseau
+short,fr,Je patiente
+short,fr,Au revoir
+short,fr,Ça ne marche pas
+short,fr,Oui merci
+short,fr,ok merci
+short,fr,Salut
+short,fr,Facture erronée
+short,en,Thanks
+short,en,Thank you so much!
+short,en,Hello
+short,en,Good evening
+short,en,Alright
+short,en,Still nothing.
+short,en,It's fixed
+short,en,No signal
+short,en,I'm waiting
+short,en,Goodbye
+short,en,It doesn't work
+short,en,"Yes, thanks"
+short,en,ok thanks
+short,en,Hi
+short,en,Wrong bill
+mixed,fr,Mon roaming ne marche pas en Espagne
+mixed,fr,"J'ai plus de data, c'est normal ?"
+mixed,fr,Le hotspot coupe toutes les cinq minutes
+mixed,fr,Mon smartphone ne trouve plus le wifi d'appel
+mixed,fr,"Le call center m'a dit de rebooter, sans succès"
+mixed,en,My forfait is way too expensive now
+mixed,en,"I tried the PUK, still bloqué"
+mixed,en,The SIM says carte invalide when I start the phone
+mixed,en,I'm in Lyon centre and the 4G is gone
+mixed,en,The agent said merci and hung up
+no_letters,und,???
+no_letters,und,"12,90 €"
+no_letters,und,0612
+no_letters,und,!!! :( !!!
+no_letters,und,👍
+no_letters,und,...
+no_letters,und,€19.99 / 29.99

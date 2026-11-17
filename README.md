@@ -51,7 +51,8 @@ PostgreSQL 16 · Redpanda · Next.js + TypeScript + Tailwind · Docker Compose �
 
 The goal is a one-command demo (`make up`). Today it starts the infrastructure (Redpanda, its web console and
 PostgreSQL), the simulator, which publishes about 5 synthetic messages per second, and the enrichment service,
-which turns them into enriched messages (with placeholder predictions until the models land); the other Sentio
+which detects their language and turns them into enriched messages (sentiment, topic and churn risk are
+placeholders until the models land); the other Sentio
 services will be added as they land.
 
 ```bash

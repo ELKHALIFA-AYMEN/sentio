@@ -12,8 +12,9 @@ import signal
 import sys
 
 from sentio_enrichment.config import Settings
-from sentio_enrichment.enricher import PlaceholderEnricher
+from sentio_enrichment.enricher import MessageEnricher
 from sentio_enrichment.kafka import KafkaSink, KafkaSource
+from sentio_enrichment.language import LangidDetector
 from sentio_enrichment.logging_json import configure_logging
 from sentio_enrichment.processing import Routing
 from sentio_enrichment.worker import run
@@ -30,6 +31,7 @@ async def serve(settings: Settings) -> None:
         with contextlib.suppress(NotImplementedError):
             loop.add_signal_handler(sig, stop.set)
 
+    language_detector = LangidDetector()  # loads the model once, before reading any message
     logger.info(
         "enrichment starting",
         extra={
@@ -38,7 +40,7 @@ async def serve(settings: Settings) -> None:
             "output_topic": settings.output_topic,
             "dlq_topic": settings.dlq_topic,
             "group_id": settings.group_id,
-            "enricher": PlaceholderEnricher.VERSION,
+            "language_model": language_detector.version,
         },
     )
     routing = Routing(output_topic=settings.output_topic, dlq_topic=settings.dlq_topic)
@@ -48,7 +50,7 @@ async def serve(settings: Settings) -> None:
             settings.kafka_bootstrap_servers, settings.input_topic, settings.group_id
         ) as source,
     ):
-        stats = await run(source, sink, PlaceholderEnricher(), routing, stop)
+        stats = await run(source, sink, MessageEnricher(language_detector), routing, stop)
     logger.info(
         "enrichment stopped",
         extra={

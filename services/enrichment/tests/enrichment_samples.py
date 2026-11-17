@@ -4,11 +4,33 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from sentio_enrichment import InputRecord
-from sentio_schemas import Author, Channel, Customer, CustomerSegment, RawMessageEvent
+from sentio_enrichment import InputRecord, LanguageGuess, MessageEnricher
+from sentio_schemas import Author, Channel, Customer, CustomerSegment, Language, RawMessageEvent
 
 NOW = datetime(2026, 11, 17, 9, 0, 5, tzinfo=UTC)
 CONVERSATION_ID = UUID("6f1c2a0e-3b4d-4e5f-8a9b-0c1d2e3f4a5b")
+
+
+FRENCH_GUESS = LanguageGuess(Language.FR, 0.99)
+
+
+class FixedLanguageDetector:
+    """Answers the same thing for every text: fast and predictable, for tests of the pipeline."""
+
+    version = "fixed-1.0.0"
+
+    def __init__(self, guess: LanguageGuess = FRENCH_GUESS) -> None:
+        self.guess = guess
+        self.texts: list[str] = []
+
+    def detect(self, text: str) -> LanguageGuess:
+        self.texts.append(text)
+        return self.guess
+
+
+def make_enricher() -> MessageEnricher:
+    """An enricher with a fixed language detector."""
+    return MessageEnricher(FixedLanguageDetector())
 
 
 def raw_event(author: Author = Author.CUSTOMER, sequence: int = 1) -> RawMessageEvent:

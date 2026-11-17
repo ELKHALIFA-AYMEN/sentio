@@ -3,15 +3,16 @@
 Consumes `conversations.raw`, adds predictions to every message and publishes the result to
 `conversations.enriched`. Messages that cannot be processed go to the dead-letter topic `conversations.dlq`.
 
-> **Status:** the pipeline runs end to end with a **placeholder enricher**: every message gets the same neutral
-> predictions (language `und`, sentiment `neutral`, topic `other`, churn risk 0, model version
-> `placeholder-0.1.0`). Language detection, sentiment, topic and churn-risk models replace it in the next steps.
+> **Status:** the **language** is detected by a real model. Sentiment, topic and churn risk are still
+> **placeholders**: every customer message gets `neutral`, `other` and 0, with the model version
+> `placeholder-0.1.0`. Models replace them in the next steps.
 
 ## Design: a pure core and a thin I/O layer
 
 | Module | Role | Side effects |
 |---|---|---|
-| [`enricher.py`](src/sentio_enrichment/enricher.py) | The `Enricher` interface and the placeholder implementation. | none |
+| [`enricher.py`](src/sentio_enrichment/enricher.py) | The `Enricher` interface and `MessageEnricher`, which combines the models. | none |
+| [`language.py`](src/sentio_enrichment/language.py) | Language detection (FR / EN / `und`). | none (loads the model at start) |
 | [`processing.py`](src/sentio_enrichment/processing.py) | One input record → one output message: the enriched event, or a dead letter. | none |
 | [`worker.py`](src/sentio_enrichment/worker.py) | The loop: read a batch, process, publish, commit. Stops cleanly when asked. | through `Source` / `Sink` |
 | [`kafka.py`](src/sentio_enrichment/kafka.py) | Kafka consumer and producer (the only module that imports `aiokafka`). | network |
@@ -20,6 +21,23 @@ Consumes `conversations.raw`, adds predictions to every message and publishes th
 
 The worker only knows two small interfaces, `Source` (poll, commit) and `Sink` (send and wait), so tests run it
 against an in-memory fake broker.
+
+## Language detection
+
+Every message, customer or agent, gets a `language` and a `language_confidence`
+([model card](../../ml/language/README.md)):
+
+- the detector is **py3langid**, restricted to French and English;
+- a text **without any letter** (`???`, `12,90 €`, emoji) is `und` with confidence 0;
+- if the most likely language has a **probability below 0.70**, the answer is `und` with confidence 0
+  (mostly one- or two-word messages such as `Hello` or `Merci`);
+- otherwise, the language and its probability (0.70 to 1; full sentences score above 0.99).
+
+The model ships with the package (4.5 MB, plus numpy) and loads in under a second when the service starts.
+Detection takes about 30 µs per message, so the service still processes about 15,000 messages per second.
+
+Measured accuracy: 100 % on full sentences, 77 % on short replies (20 % `und`, 3 % wrong).
+Re-run the evaluation with `uv run python ml/language/evaluate.py`.
 
 ## Reading: consumer group, offsets, commits
 
